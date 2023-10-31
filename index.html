@@ -12,6 +12,17 @@
 		<meta name="image" property="og:image" content="images/profile.png">
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<script type="module" src="dist/bundle.js"></script>
+
+		<script async src="https://unpkg.com/es-module-shims@1.4.7/dist/es-module-shims.js"></script>
+		<script type="importmap">
+			{
+			  "imports": {
+				"three": "https://cdn.skypack.dev/three"
+			  }
+			}
+		  </script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 	</head>
 	<body class="is-preload">
 
@@ -42,6 +53,8 @@
 							<ul class="actions">
 								<li><a href="#one" class="button scrolly">Explore</a></li>
 							</ul>
+
+							<div id="intro-3d-container" style="width: 100%; height: 400px;"></div>
 						</div>
 					</section>
 
@@ -223,6 +236,9 @@
 			<script src="assets/js/breakpoints.min.js"></script>
 			<script src="assets/js/util.js"></script>
 			<script src="assets/js/main.js"></script>
+			<script src="assets/js/3D.js"></script>
+
+
 
 	</body>
 </html>
