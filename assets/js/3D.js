@@ -6,7 +6,7 @@ import { EffectComposer } from 'https://cdn.skypack.dev/three@0.129.0/examples/j
 import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/loaders/GLTFLoader.js';
 import * as dat from '../../node_modules/dat.gui/build/dat.gui.module.js'
 
-let camera, scene, renderer, labelRenderer, modalRenderer, light, lightBack;
+let camera, scene, renderer, labelRenderer, modalRenderer, light, lightBack, lightFactor;
 let composer, outlinePass, highlightOutlinePass, effectFXAA;
 
 const loader = new GLTFLoader();
@@ -20,13 +20,14 @@ function init() {
 	document.getElementById('intro-3d-container').appendChild(renderer.domElement);
 
     //Lights
-    let lightFactor = 4;
-	light = new THREE.PointLight(0xffffff, 1 * lightFactor, 100 * lightFactor);
-    light.position.set( 0, 0, 8 );
+    lightFactor = 1;
+	//light = new THREE.PointLight(0xffffff, 1 * lightFactor, 50 * lightFactor);
+    light = new THREE.DirectionalLight(0xffffff, Math.PI * lightFactor);
+    /*light.position.set( 0, 0, 8 );
     lightBack = new THREE.PointLight(0xffffff, 1 * lightFactor, 100 * lightFactor);
-    lightBack.position.set( 0, 0, -8 );
+    lightBack.position.set( 0, 0, -8 );*/
 	scene.add(light);
-    scene.add(lightBack);
+    //scene.add(lightBack);
 
     
 
@@ -46,7 +47,37 @@ function init() {
 			console.log("Error loading objmenu folder");
 		}
 
-        let model = gltf.scene;
+        let model = gltf.scene.children[0];
+
+        /* Toon Shader Setup */
+		const threeTone = new THREE.TextureLoader().load('./assets/vfx/threeTone.jpg');
+        const texture = new THREE.TextureLoader().load('./assets/textures/Lako_Tex.png');
+		threeTone.minFilter = THREE.NearestFilter;
+		threeTone.magFilter = THREE.NearestFilter;
+		//const toonMaterial = new THREE.MeshToonMaterial();
+		//toonMaterial.gradientMap = threeTone;
+        //toonMaterial.map = texture;
+
+		model.traverse((child, i) => {
+		    if (child.isMesh) {
+                console.log("Mesh value: ", child);
+
+                let toonMaterial = new THREE.MeshToonMaterial({map:child.material.map,color:child.material.color});
+                toonMaterial.gradientMap = threeTone;
+
+                switch (child.name) {
+                    case "Glasses":
+                        toonMaterial.transparent = true;
+                        toonMaterial.opacity = 0.5;
+                        break;
+                    default:
+                        break;
+                }
+
+                child.material = toonMaterial;
+
+			}
+		});
 
 
         model.position.x = 0;
@@ -80,13 +111,6 @@ function init() {
 
 	const renderPass = new RenderPass( scene, camera );
 	composer.addPass( renderPass );
-
-    /* Toon Shader Setup */
-	/*const threeTone = new THREE.TextureLoader().load('./assets/vfx/threeTone.jpg');
-	threeTone.minFilter = THREE.NearestFilter;
-	threeTone.magFilter = THREE.NearestFilter;
-	const toonMaterial = new THREE.MeshToonMaterial();
-	toonMaterial.gradientMap = threeTone;*/
 
     const gui = new dat.GUI();
 
