@@ -8,6 +8,8 @@ import * as dat from '../../node_modules/dat.gui/build/dat.gui.module.js'
 
 let camera, scene, renderer, labelRenderer, modalRenderer, light, lightBack, lightFactor;
 let composer, outlinePass, highlightOutlinePass, effectFXAA;
+const clock = new THREE.Clock(); // Create a Clock instance.
+let animationMixer;
 
 const loader = new GLTFLoader();
 
@@ -23,20 +25,7 @@ function init() {
     lightFactor = 1;
 	//light = new THREE.PointLight(0xffffff, 1 * lightFactor, 50 * lightFactor);
     light = new THREE.DirectionalLight(0xffffff, Math.PI * lightFactor);
-    /*light.position.set( 0, 0, 8 );
-    lightBack = new THREE.PointLight(0xffffff, 1 * lightFactor, 100 * lightFactor);
-    lightBack.position.set( 0, 0, -8 );*/
 	scene.add(light);
-    //scene.add(lightBack);
-
-    
-
-    let objMenuFolder;
-    try {
-        objMenuFolder = gui.addFolder(modelToLoad + Math.random());
-    } catch (error) {
-        console.log("Error loading objmenu folder");
-    }
 
     var modelToLoad = "Lako2.glb";
 	loader.load( './assets/models/' + modelToLoad, function ( gltf ) {
@@ -48,18 +37,29 @@ function init() {
 		}
 
         let model = gltf.scene.children[0];
+        let animations = gltf.animations;
+
+        console.log("Animations", animations);
+
+        // Create an animation mixer and add the animations to it.
+        animationMixer = new THREE.AnimationMixer(model);
+
+        if (animations && animations.length > 0) {
+            animations.forEach((clip) => {
+                animationMixer.clipAction(clip).play(); // Play all available animations.
+            });
+        }
+
 
         /* Toon Shader Setup */
 		const threeTone = new THREE.TextureLoader().load('./assets/vfx/threeTone.jpg');
         const texture = new THREE.TextureLoader().load('./assets/textures/Lako_Tex.png');
 		threeTone.minFilter = THREE.NearestFilter;
 		threeTone.magFilter = THREE.NearestFilter;
-		//const toonMaterial = new THREE.MeshToonMaterial();
-		//toonMaterial.gradientMap = threeTone;
-        //toonMaterial.map = texture;
 
-		model.traverse((child, i) => {
+		model.traverse((child, i) => {            
 		    if (child.isMesh) {
+
                 console.log("Mesh value: ", child);
 
                 let toonMaterial = new THREE.MeshToonMaterial({map:child.material.map,color:child.material.color});
@@ -75,7 +75,6 @@ function init() {
                 }
 
                 child.material = toonMaterial;
-
 			}
 		});
 
@@ -115,25 +114,32 @@ function init() {
     const gui = new dat.GUI();
 
     // Set camera position
-    //camera.position.set = 2.33,2.33,8.95;
     camera.position.x = 0;
     camera.position.y = 4.54;
     camera.position.z = 2.33;
-    //camera.lookAt(new THREE.Vector3(0,0,0));
 
     // Camera GUI
     setupCameraGUI(gui);
 
-    //Light GUI
+    // Light GUI
     setupLightsGUI(gui);
 
 
 	animate();
+
+    //Add gui to element
     document.body.append(document.getElementsByClassName("dg ac")[0]);
 }
 
 function animate() {
 	requestAnimationFrame( animate );
+
+    // Update the animation mixer on each frame.
+    if (animationMixer) 
+    {
+        animationMixer.update(clock.getDelta()); // Update the mixer with the elapsed time.
+    }
+
 	renderer.render( scene, camera );
 }
 
