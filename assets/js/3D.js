@@ -16,9 +16,16 @@ const loader = new GLTFLoader();
 function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color( 0x5e42a6);
-	camera = new THREE.PerspectiveCamera(75, window.innerWidth / 400, 0.1, 1000);
+
+    let containerWidth = document.getElementById('intro').offsetWidth;
+    let containerHeight = document.getElementById('intro').offsetHeight;
+
+    console.log("Container Width: ", containerWidth);
+    console.log("Container Height: ", containerHeight);
+
+	camera = new THREE.PerspectiveCamera(75, containerWidth/ containerHeight, 0.1, 1000);
 	renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, 400);
+    renderer.setSize(containerWidth, containerHeight);
 	document.getElementById('intro-3d-container').appendChild(renderer.domElement);
 
     //Lights
@@ -132,7 +139,7 @@ function init() {
 }
 
 function animate() {
-	requestAnimationFrame( animate );
+	
 
     // Update the animation mixer on each frame.
     if (animationMixer) 
@@ -140,9 +147,47 @@ function animate() {
         animationMixer.update(clock.getDelta()); // Update the mixer with the elapsed time.
     }
 
+    resizeCanvasToDisplaySize();
+    //var container = document.querySelector('#intro');
+    //var canvas = renderer.domElement;
+    //scaleToFit(container, canvas);
 	renderer.render( scene, camera );
+    requestAnimationFrame( animate );
 }
 
+//https://stackoverflow.com/questions/54202461/how-to-fit-the-size-of-the-three-js-renderer-to-a-webpage-element
+function scaleToFit (container, node) {
+    var rect = container.getBoundingClientRect();
+    console.log("Rect", rect);
+    node.width = rect.width;
+    node.height = rect.height;
+
+    renderer.setSize(node.width, node.height, false);
+    camera.aspect = node.width / node.height;
+    camera.updateProjectionMatrix();
+}
+
+//https://stackoverflow.com/questions/29884485/threejs-canvas-size-based-on-container
+function resizeCanvasToDisplaySize() {
+    const canvas = renderer.domElement;
+    // look up the size the canvas is being displayed
+    //const width = document.getElementById('intro').offsetWidth;
+    //const height = document.getElementById('intro').offsetHeight;
+
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+
+    // adjust displayBuffer size to match
+    if (canvas.width !== width || canvas.height !== height) {
+      // you must pass false here or three.js sadly fights the browser
+      console.log("Canvas", canvas);
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+  
+      // update any render target sizes here
+    }
+}
 
 function setupCameraGUI(gui)
 {
